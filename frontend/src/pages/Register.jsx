@@ -1,51 +1,145 @@
-import React, { useState } from "react";
+import React from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 import styled from "styled-components";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useMutation } from "@tanstack/react-query";
+import { signup } from "../redux/userSlice"; // Ensure this path is correct
+import { usersregisterAPI } from "../services/userServices"; // Ensure this path is correct
 
 const Register = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Add your registration logic here
-    console.log("Register submitted:", { email, password, confirmPassword });
-  };
+  // Mutation for registering a user
+  const { mutateAsync, isPending, isError, error } = useMutation({
+    mutationFn: usersregisterAPI, // Ensure this function is defined in userServices.js
+    mutationKey: ["register-user"],
+  });
+
+  // Validation schema using Yup
+  const validationSchema = Yup.object({
+    username: Yup.string()
+      .min(5, "Username must be at least 5 characters")
+      .required("Username is required"),
+    email: Yup.string()
+      .email("Invalid email")
+      .required("Email is required"),
+    password: Yup.string()
+      .min(6, "Password must be at least 6 characters")
+      .required("Password is required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password"), null], "Passwords must match")
+      .required("Confirm password is required"),
+  });
+
+  // Formik setup
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      role: "customer", // Default role for new users
+    },
+    validationSchema,
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        console.log("Submitting form data:", values); // Log form data
+        const data = await mutateAsync(values); // Call the API
+        console.log("Registration Response:", data); // Log response
+
+        if (data?.token) {
+          localStorage.setItem("userToken", data.token); // Save token to localStorage
+          dispatch(signup(data)); // Dispatch signup action
+          resetForm(); // Reset the form
+          navigate("/collections/collectionshome"); // Redirect to home page
+        } else {
+          alert("Invalid response from server");
+        }
+      } catch (error) {
+        console.error("Signup Error:", error.response ? error.response.data : error.message); // Log detailed error
+        alert("An error occurred during registration. Please try again.");
+      }
+    },
+  });
 
   return (
     <PageWrapper>
       <RegisterWrapper>
         <h1>Register</h1>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={formik.handleSubmit}>
+          {/* Username Field */}
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              name="username"
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              required
+            />
+            {formik.touched.username && formik.errors.username && (
+              <ErrorMessage>{formik.errors.username}</ErrorMessage>
+            )}
+          </div>
+
+          {/* Email Field */}
           <div className="form-group">
             <label>Email</label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               required
             />
+            {formik.touched.email && formik.errors.email && (
+              <ErrorMessage>{formik.errors.email}</ErrorMessage>
+            )}
           </div>
+
+          {/* Password Field */}
           <div className="form-group">
             <label>Password</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               required
             />
+            {formik.touched.password && formik.errors.password && (
+              <ErrorMessage>{formik.errors.password}</ErrorMessage>
+            )}
           </div>
+
+          {/* Confirm Password Field */}
           <div className="form-group">
             <label>Confirm Password</label>
             <input
               type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              name="confirmPassword"
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               required
             />
+            {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+              <ErrorMessage>{formik.errors.confirmPassword}</ErrorMessage>
+            )}
           </div>
-          <button type="submit">Register</button>
+
+          {/* Display Mutation Error */}
+          {isError && <ErrorMessage>{error.message}</ErrorMessage>}
+
+          <button type="submit" disabled={isPending}>
+            {isPending ? "Registering..." : "Register"}
+          </button>
         </form>
         <p>
           Already have an account? <Link to="/login">Login here</Link>
@@ -112,6 +206,11 @@ const RegisterWrapper = styled.div`
     &:hover {
       opacity: 0.9;
     }
+
+    &:disabled {
+      background-color: hsl(var(--orange), 0.5);
+      cursor: not-allowed;
+    }
   }
 
   p {
@@ -128,6 +227,13 @@ const RegisterWrapper = styled.div`
       }
     }
   }
+`;
+
+const ErrorMessage = styled.p`
+  color: red;
+  font-size: 1rem; /* Increased font size */
+  margin-bottom: 1.5rem; /* Increased margin */
+  text-align: center;
 `;
 
 export default Register;
