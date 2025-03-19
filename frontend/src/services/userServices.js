@@ -3,6 +3,7 @@ import { BASE_URL } from "../utils/url";
 import { getUserData } from "../utils/storageHandler";
 
 export const usersregisterAPI= async(data)=>{
+    
     const response = await axios.post(`${BASE_URL}/users/register`,data, {
         withCredentials: true,  // Make sure credentials (cookies) are sent
     });

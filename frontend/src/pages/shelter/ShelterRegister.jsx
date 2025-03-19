@@ -3,76 +3,90 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-import { usersloginAPI } from "../services/userServices"; // Ensure this path is correct
-import { login } from "../redux/userSlice";
 import { useDispatch } from "react-redux";
+import { useMutation } from "@tanstack/react-query";
 
-const Login = () => {
+import { signup } from "../../redux/userSlice";
+import { usersregisterAPI } from "../../services/userServices";
+
+const ShelterRegister = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  // Mutation for logging in a user
+  // Mutation for registering a user
   const { mutateAsync, isPending, isError, error } = useMutation({
-    mutationFn: usersloginAPI, // Ensure this function is defined in userServices.js
-    mutationKey: ["login-user"],
+    mutationFn: usersregisterAPI, // Ensure this function is defined in userServices.js
+    mutationKey: ["register-user"],
   });
 
   // Validation schema using Yup
   const validationSchema = Yup.object({
+    username: Yup.string()
+      .min(5, "Username must be at least 5 characters")
+      .required("Username is required"),
     email: Yup.string()
       .email("Invalid email")
       .required("Email is required"),
     password: Yup.string()
       .min(6, "Password must be at least 6 characters")
       .required("Password is required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password"), null], "Passwords must match")
+      .required("Confirm password is required"),
   });
-    
-const dispatch = useDispatch();
+
   // Formik setup
   const formik = useFormik({
     initialValues: {
+      username: "",
       email: "",
       password: "",
+      confirmPassword: "",
+      role: "shelter", // Default role for new users
     },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
-      mutateAsync(values).then((data)=>{
-        dispatch(login(data));
-        localStorage.setItem("userData",data)
-      })
       try {
         console.log("Submitting form data:", values); // Log form data
         const data = await mutateAsync(values); // Call the API
-        console.log("Login Response:", data); // Log response
+        console.log("Registration Response:", data); // Log response
 
         if (data?.token) {
           localStorage.setItem("userToken", data.token); // Save token to localStorage
+          dispatch(signup(data)); // Dispatch signup action
           resetForm(); // Reset the form
-          console.log(data.role);
-          
-          // Role-based navigation
-          if (data.role === "shelter") {
-            navigate("/shelterhome");
-          } else if (data.role === "individual") {
-            navigate("/home");
-          } else if (data.role === "admin") {
-            navigate("/admin/dashboard");
-          }
+          navigate("/shelterhome"); // Redirect to home page
         } else {
           alert("Invalid response from server");
         }
       } catch (error) {
-        console.error("Login Error:", error.response ? error.response.data : error.message); // Log detailed error
-        alert("An error occurred during login. Please try again.");
+        console.error("Signup Error:", error.response ? error.response.data : error.message); // Log detailed error
+        alert("An error occurred during registration. Please try again.");
       }
     },
   });
 
   return (
     <PageWrapper>
-      <LoginWrapper>
-        <h1>Login</h1>
+      <RegisterWrapper>
+        <h1>Shelter Register</h1>
         <form onSubmit={formik.handleSubmit}>
+          {/* Username Field */}
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              name="username"
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              required
+            />
+            {formik.touched.username && formik.errors.username && (
+              <ErrorMessage>{formik.errors.username}</ErrorMessage>
+            )}
+          </div>
+
           {/* Email Field */}
           <div className="form-group">
             <label>Email</label>
@@ -105,24 +119,33 @@ const dispatch = useDispatch();
             )}
           </div>
 
+          {/* Confirm Password Field */}
+          <div className="form-group">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              required
+            />
+            {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+              <ErrorMessage>{formik.errors.confirmPassword}</ErrorMessage>
+            )}
+          </div>
+
           {/* Display Mutation Error */}
           {isError && <ErrorMessage>{error.message}</ErrorMessage>}
 
           <button type="submit" disabled={isPending}>
-            {isPending ? "Logging in..." : "Login"}
+            {isPending ? "Registering..." : "Register"}
           </button>
         </form>
         <p>
-          Don't have an account?{" "}
-          <div className="register-options">
-            <Link to="/register">Register as Adopter</Link>
-            <Link to="/shelter-register">Register as Shelter</Link>
-          </div>
+          Already have an account? <Link to="/login">Login here</Link>
         </p>
-        <p>
-          <Link to="/forgot-password">Forgot Password?</Link>
-        </p>
-      </LoginWrapper>
+      </RegisterWrapper>
     </PageWrapper>
   );
 };
@@ -137,7 +160,7 @@ const PageWrapper = styled.div`
   background-size: cover; /* Ensure the image covers the entire page */
 `;
 
-const LoginWrapper = styled.div`
+const RegisterWrapper = styled.div`
   max-width: 400px; /* Adjusted to fit the larger padding */
   margin: 7rem; /* 10rem margin on all sides */
   padding: 7rem; /* 10rem padding on all sides */
@@ -205,30 +228,13 @@ const LoginWrapper = styled.div`
       }
     }
   }
-
-  .register-options {
-    display: flex;
-    justify-content: space-between;
-    gap: 2rem; /* Add space between the links */
-    margin-top: 1rem;
-
-    a {
-      color: hsl(var(--orange));
-      text-decoration: none;
-      font-weight: bold;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
 `;
 
 const ErrorMessage = styled.p`
   color: red;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-  text-align: left;
+  font-size: 1rem; /* Increased font size */
+  margin-bottom: 1.5rem; /* Increased margin */
+  text-align: center;
 `;
 
-export default Login;
+export default ShelterRegister;

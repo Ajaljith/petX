@@ -161,9 +161,7 @@ const AdminDashboard = () => {
     { title: "Lost Pets", subItems: ["Reported Cases", "Found Pets"] },
     { title: "Adoptions", subItems: ["Pending Requests", "Approved Requests"] },
     { title: "Reports", subItems: ["View Reports", "Analytics"] },
-    { title: "Messages" },
-    { title: "Live Map" },
-    { title: "Settings" },
+    
   ];
 
   return (

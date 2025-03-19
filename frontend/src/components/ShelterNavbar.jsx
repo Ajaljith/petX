@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import { Logo, Menu, } from "../icons/index";
+import { Logo, Menu } from "../icons/index";
 import { avatar } from "../assets/imagedata";
 import FloatingCart from "../components/FloatingCart";
 import { useGlobalContext } from "../context/context";
+import Logout from "./Logout"; // Import the Logout component
 
 // Bell Icon Component
 const BellIcon = () => (
@@ -116,6 +117,9 @@ const ShelterNavbar = () => {
           <button className="avatar-btn" onClick={() => navigate("/shelter/profile")}>
             <img src={avatar} alt="avatar" />
           </button>
+
+          {/* Logout Button */}
+          <Logout /> {/* Add the Logout component here */}
 
           {/* Floating Cart */}
           <FloatingCart className={`${state.showingCart ? "active" : ""}`} />
@@ -257,31 +261,6 @@ const NavigatorWrapper = styled.header`
         border-radius: 50%;
         padding: 0.2rem 0.6rem;
         font-size: 0.8rem;
-      }
-    }
-
-    .cart-btn {
-      position: relative;
-      background: none;
-      border: none;
-      cursor: pointer;
-
-      svg,
-      path {
-        fill: hsl(var(--black));
-      }
-
-      span {
-        user-select: none;
-        position: absolute;
-        top: -1rem;
-        right: -1rem;
-        background-color: hsl(var(--orange));
-        font-weight: 700;
-        color: hsl(var(--white));
-        border-radius: 50%;
-        padding: 0.3rem 0.8rem;
-        font-size: 1.1rem;
       }
     }
 

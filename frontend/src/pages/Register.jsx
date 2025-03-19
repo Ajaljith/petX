@@ -41,7 +41,7 @@ const Register = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "customer", // Default role for new users
+      role: "individual", // Default role for new users
     },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
@@ -54,7 +54,7 @@ const Register = () => {
           localStorage.setItem("userToken", data.token); // Save token to localStorage
           dispatch(signup(data)); // Dispatch signup action
           resetForm(); // Reset the form
-          navigate("/collections/collectionshome"); // Redirect to home page
+          navigate("/home"); // Redirect to home page
         } else {
           alert("Invalid response from server");
         }
@@ -68,7 +68,7 @@ const Register = () => {
   return (
     <PageWrapper>
       <RegisterWrapper>
-        <h1>Register</h1>
+        <h1>Adopter Register</h1>
         <form onSubmit={formik.handleSubmit}>
           {/* Username Field */}
           <div className="form-group">

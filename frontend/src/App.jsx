@@ -6,7 +6,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Register from "./pages/Register"; // Adopter Register
+import ShelterRegister from "./pages/shelter/ShelterRegister"; // Shelter Register
 import SearchResults from "./components/SearchResults";
 import Order from "./pages/Order";
 import Wishlist from "./pages/Wishlist";
@@ -35,8 +36,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import AdoptionForm from "./components/AdoptionForm";
 import AdopterProfile from "./pages/AdopterProfile";
 import AdopterAdoptions from "./pages/AdopterAdoptions";
-import ContractSign from "./pages/ContractSign"; // Import the ContractSign component
-import AdopterMedicalDetails from "./pages/adopter/AdopterMedicalDetails"; // Import the AdopterMedicalDetails component
+import ContractSign from "./pages/ContractSign";
+import AdopterMedicalDetails from "./pages/adopter/AdopterMedicalDetails";
 
 function App() {
   const { state } = useGlobalContext();
@@ -69,11 +70,11 @@ function App() {
   const adopterRoutes = [
     "/adopter-profile",
     "/adopter-adoptions",
-    "/adopter/medical-details", // Route for adopter medical details
+    "/adopter/medical-details",
   ];
 
   // Define routes where no navbar should be displayed
-  const noNavbarRoutes = ["/", "/login", "/register", "/forgot-password"];
+  const noNavbarRoutes = ["/", "/login", "/register", "/shelter-register", "/forgot-password"];
 
   // Check if the current page is an admin-based page
   const isAdminPage = adminRoutes.includes(location.pathname);
@@ -122,15 +123,16 @@ function App() {
         <Route path="/order" element={<Order />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<Register />} /> {/* Adopter Register */}
+        <Route path="/shelter-register" element={<ShelterRegister />} /> {/* Shelter Register */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/adoption-form" element={<AdoptionForm />} />
         <Route path="/adopter-profile" element={<AdopterProfile />} />
-        <Route path="/adopter-adoptions" element={<AdopterAdoptions />} /> {/* Adopter Adoptions Route */}
-        <Route path="/adopter/medical-details" element={<AdopterMedicalDetails />} /> {/* Adopter Medical Details Route */}
-        <Route path="/contract-sign" element={<ContractSign />} /> {/* Contract Signing Route */}
+        <Route path="/adopter-adoptions" element={<AdopterAdoptions />} />
+        <Route path="/adopter/medical-details" element={<AdopterMedicalDetails />} />
+        <Route path="/contract-sign" element={<ContractSign />} />
 
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={<Admindashbaordpage />} />

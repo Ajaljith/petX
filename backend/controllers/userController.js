@@ -30,8 +30,8 @@ const userController={
         }),  
   
     login :asyncHandler(async(req,res)=>{
-        const {username,password}=req.body
-        const userExist=await User.findOne({username})
+        const {email,password}=req.body
+        const userExist=await User.findOne({email})
         if(!userExist){
             throw new Error("User not found")
         }
@@ -40,7 +40,7 @@ const userController={
             throw new Error("Passwords not matching")
         }
         const payload={
-            username:userExist.username,
+            email:userExist.email,
             id:userExist.id
         }
         const token=jwt.sign(payload,process.env.JWT_SECRET_KEY)      
